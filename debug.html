@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑屏问题调试页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+        }
+        .debug-panel {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-box {
+            width: 200px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .test-box:hover {
+            transform: scale(1.05);
+        }
+        .visibility-test {
+            background: #e6c278;
+            color: #000;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        button {
+            background: #e6c278;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #d4af47;
+        }
+        #log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 黑屏问题系统性调试</h1>
+    
+    <div class="debug-panel">
+        <h2>1. 基础渲染测试</h2>
+        <div class="test-box">基础CSS渲染正常</div>
+        <div class="test-box" style="background: #ff6b6b;">红色测试块</div>
+        <div class="test-box" style="background: #4ecdc4;">青色测试块</div>
+    </div>
+
+    <div class="debug-panel">
+        <h2>2. 页面可见性API测试</h2>
+        <div class="visibility-test" id="visibility-status">
+            页面可见性状态: <span id="visibility-value">检测中...</span>
+        </div>
+        <div class="visibility-test" id="focus-status">
+            窗口焦点状态: <span id="focus-value">检测中...</span>
+        </div>
+        <button onclick="testVisibilityAPI()">测试可见性API</button>
+        <button onclick="simulateTabSwitch()">模拟切换标签页</button>
+    </div>
+
+    <div class="debug-panel">
+        <h2>3. 动态内容测试</h2>
+        <div id="dynamic-content">
+            <div class="test-box" id="animated-box">动画测试块</div>
+        </div>
+        <button onclick="startAnimation()">开始动画</button>
+        <button onclick="stopAnimation()">停止动画</button>
+        <button onclick="toggleContent()">切换内容</button>
+    </div>
+
+    <div class="debug-panel">
+        <h2>4. 事件监听测试</h2>
+        <button onclick="addEventListeners()">添加事件监听</button>
+        <button onclick="removeEventListeners()">移除事件监听</button>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+
+    <div class="debug-panel">
+        <h2>5. 调试日志</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let animationId;
+        let eventListenersActive = false;
+        
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[DEBUG] ${message}`);
+        }
+
+        // 页面可见性检测
+        function updateVisibilityStatus() {
+            const isVisible = !document.hidden;
+            const hasFocus = document.hasFocus();
+            
+            document.getElementById('visibility-value').textContent = isVisible ? '可见' : '隐藏';
+            document.getElementById('focus-value').textContent = hasFocus ? '有焦点' : '无焦点';
+            
+            log(`页面状态更新: 可见=${isVisible}, 焦点=${hasFocus}`);
+        }
+
+        function testVisibilityAPI() {
+            log('开始测试页面可见性API...');
+            updateVisibilityStatus();
+            
+            // 测试API支持
+            if (typeof document.hidden !== 'undefined') {
+                log('✅ document.hidden API 支持');
+            } else {
+                log('❌ document.hidden API 不支持');
+            }
+            
+            if (typeof document.hasFocus === 'function') {
+                log('✅ document.hasFocus API 支持');
+            } else {
+                log('❌ document.hasFocus API 不支持');
+            }
+        }
+
+        function simulateTabSwitch() {
+            log('模拟标签页切换...');
+            // 这里只能记录，无法真正模拟
+            log('请手动切换到其他标签页，然后切换回来观察日志');
+        }
+
+        // 动画测试
+        function startAnimation() {
+            log('开始动画测试...');
+            const box = document.getElementById('animated-box');
+            let rotation = 0;
+            
+            function animate() {
+                rotation += 2;
+                box.style.transform = `rotate(${rotation}deg) scale(${1 + Math.sin(rotation * 0.1) * 0.2})`;
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        function stopAnimation() {
+            log('停止动画测试');
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            document.getElementById('animated-box').style.transform = '';
+        }
+
+        function toggleContent() {
+            const content = document.getElementById('dynamic-content');
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            log(`内容切换: ${isHidden ? '显示' : '隐藏'}`);
+        }
+
+        // 事件监听测试
+        function handleVisibilityChange() {
+            log('🔄 visibilitychange 事件触发');
+            updateVisibilityStatus();
+        }
+
+        function handleFocus() {
+            log('🎯 window focus 事件触发');
+            updateVisibilityStatus();
+        }
+
+        function handleBlur() {
+            log('😴 window blur 事件触发');
+            updateVisibilityStatus();
+        }
+
+        function handleResize() {
+            log(`📏 window resize 事件触发: ${window.innerWidth}x${window.innerHeight}`);
+        }
+
+        function addEventListeners() {
+            if (eventListenersActive) {
+                log('⚠️ 事件监听器已经激活');
+                return;
+            }
+            
+            log('➕ 添加事件监听器...');
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('focus', handleFocus);
+            window.addEventListener('blur', handleBlur);
+            window.addEventListener('resize', handleResize);
+            eventListenersActive = true;
+            log('✅ 事件监听器添加完成');
+        }
+
+        function removeEventListeners() {
+            if (!eventListenersActive) {
+                log('⚠️ 事件监听器未激活');
+                return;
+            }
+            
+            log('➖ 移除事件监听器...');
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('blur', handleBlur);
+            window.removeEventListener('resize', handleResize);
+            eventListenersActive = false;
+            log('✅ 事件监听器移除完成');
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 调试页面加载完成');
+            updateVisibilityStatus();
+            addEventListeners();
+            
+            // 定期更新状态
+            setInterval(updateVisibilityStatus, 1000);
+        });
+
+        // 页面卸载前清理
+        window.addEventListener('beforeunload', function() {
+            log('🔚 页面即将卸载');
+            removeEventListeners();
+            stopAnimation();
+        });
+    </script>
+</body>
+</html>
