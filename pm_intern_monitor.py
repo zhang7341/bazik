@@ -30,7 +30,7 @@ def update_report(internships):
     
     report_content += f"\n---\n*报告由 Manus 自动化脚本生成，数据最后更新于 {today}*"
     
-    with open("/home/ubuntu/bazik/pm_intern_report.md", "w", encoding="utf-8") as f:
+    with open("/home/ubuntu/pm_intern_report.md", "w", encoding="utf-8") as f:
         f.write(report_content)
     
     print(f"Successfully updated report at {now}")
